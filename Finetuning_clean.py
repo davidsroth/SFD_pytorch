@@ -117,8 +117,8 @@ def save(model, optimizer, loss, filename):
 def init_weights():
     face_weights  = myModel.conv3_3_norm_mbox_conf.weight[0]
     face_weights = face_weights.unsqueeze(0)
-    new_weight = torch.nn.Parameter(torch.cat((face_weights, face_weights)))
-    new_weight = torch.nn.Parameter(torch.cat((new_weight, new_weight)))
+    new_weight = torch.cat((face_weights, face_weights))
+    new_weight = torch.cat((new_weight, new_weight))
     myModel.conv3_3_norm_mbox_gender.weight = new_weight
 
     face_weights = myModel.conv4_3_norm_mbox_conf.weight[0]
