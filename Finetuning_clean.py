@@ -116,37 +116,37 @@ def save(model, optimizer, loss, filename):
 
 def init_weights():
     face_weights  = myModel.conv3_3_norm_mbox_conf.weight[0]
-    face_weights = face_weights.unsqueeze(0)
-    new_weight = torch.cat((face_weights, face_weights))
-    new_weight = torch.cat((new_weight, new_weight))
+    face_weights = face_weights.unsqueeze(0).data
+    new_weight = torch.nn.Parameter(torch.cat((face_weights, face_weights))).data
+    new_weight = torch.nn.Parameter(torch.cat((new_weight, new_weight)))
     myModel.conv3_3_norm_mbox_gender.weight = new_weight
 
     face_weights = myModel.conv4_3_norm_mbox_conf.weight[0]
-    face_weights = face_weights.unsqueeze(0)
+    face_weights = face_weights.unsqueeze(0).data
     new_weight = torch.nn.Parameter(torch.cat((face_weights, face_weights)))
     new_weight.requires_grad = True
     myModel.conv4_3_norm_gender.weight = new_weight
 
     face_weights = myModel.conv5_3_norm_mbox_conf.weight[0]
-    face_weights = face_weights.unsqueeze(0)
+    face_weights = face_weights.unsqueeze(0).data
     new_weight = torch.nn.Parameter(torch.cat((face_weights, face_weights)))
     new_weight.requires_grad = True
     myModel.conv5_3_norm_gender.weight = new_weight
 
     face_weights = myModel.fc7_mbox_conf.weight[0]
-    face_weights = face_weights.unsqueeze(0)
+    face_weights = face_weights.unsqueeze(0).data
     new_weight = torch.nn.Parameter(torch.cat((face_weights, face_weights)))
     new_weight.requires_grad = True
     myModel.fc7_gender.weight = new_weight
 
     face_weights = myModel.conv6_2_mbox_conf.weight[0]
-    face_weights = face_weights.unsqueeze(0)
+    face_weights = face_weights.unsqueeze(0).data
     new_weight = torch.nn.Parameter(torch.cat((face_weights, face_weights)))
     new_weight.requires_grad = True
     myModel.conv6_gender.weight = new_weight
 
     face_weights = myModel.conv7_2_mbox_conf.weight[0]
-    face_weights = face_weights.unsqueeze(0)
+    face_weights = face_weights.unsqueeze(0).data
     new_weight = torch.nn.Parameter(torch.cat((face_weights, face_weights)))
     myModel.conv7_2_gender.weight = new_weight
 
@@ -158,6 +158,8 @@ def train_model(model, criterion, optimizer, num_classes, num_epochs = 100):
     for epoch in range(num_epochs):
         print('Epoch {}/{}'.format(epoch, num_epochs - 1))
         print('-' * 10)
+        print(len(train_loader))
+	
         
         model.train()
         running_loss = 0.0
@@ -175,21 +177,21 @@ def train_model(model, criterion, optimizer, num_classes, num_epochs = 100):
             outputs = model(data)
 
             for i in range(int(len(outputs)/2)):
-                outputs[i*2] = F.softmax(outputs[i*2], dim=1)
+                outputs[i*2] = F.softmax(outputs[i*2])
 
             for i in range(int(len(outputs)/2)):
-                outputs[i*2+1] = F.softmax(outputs[i*2+1], dim=1)
+                outputs[i*2+1] = F.softmax(outputs[i*2+1])
 
             gen_scores = []
             for i in range(int(len(outputs)/2)):
-                out_class, out_gen = outputs[i*2].cpu(), outputs[i*2+1].cpu()
+                out_class, out_gen = outputs[i*2].cpu(), outputs[i*2+1]
 
 
                 FB,FC,FH,FW = out_class.size()
 
                 for Findex in range(FH*FW):
                     windex, hindex = Findex%FW, Findex//FW
-                    cls_score = out_class[0,1,hindex,windex]
+                    cls_score = out_class[0,1,hindex,windex].data[0]
 
                     if cls_score < 0.05: continue
                     gen_scores.append(out_gen[0,:,hindex,windex].contiguous().view(2,1))
@@ -234,7 +236,7 @@ myModel.load_state_dict(newModel)
 # In[8]:
 
 
-use_cuda = False
+use_cuda = True
 myModel.eval()
 
 
@@ -253,10 +255,10 @@ conv7_2_gender = nn.Conv2d(256, 2, kernel_size=3, stride=1, padding=1)
 
 init_weights()
 
-optimizer = optim.SGD(filter(lambda p: p.requires_grad,myModel.parameters()), lr=0.0001, momentum=0.9)
+optimizer = optim.SGD(filter(lambda p: p.requires_grad,myModel.parameters()), lr=0.0001, nesterov=True, momentum=0.9)
 if use_cuda:
     myModel = myModel.cuda()
-model_ft = train_model(myModel, criterion, optimizer, num_classes, num_epochs=100)
+model_ft = train_model(myModel, criterion, optimizer, num_classes, num_epochs=10)
 
 
 # In[ ]:
