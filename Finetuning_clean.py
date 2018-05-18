@@ -155,6 +155,8 @@ def init_weights():
 
 
 def train_model(model, criterion, optimizer, num_classes, num_epochs = 100):
+    outfile = open("outfile.txt", "a")
+    outfile.write("start sequence")
     for epoch in range(num_epochs):
         print('Epoch {}/{}'.format(epoch, num_epochs - 1))
         print('-' * 10)
@@ -204,6 +206,7 @@ def train_model(model, criterion, optimizer, num_classes, num_epochs = 100):
             losses = torch.stack(losses)
 
             total_loss = sum(losses)
+
                 
 
 
@@ -219,6 +222,7 @@ def train_model(model, criterion, optimizer, num_classes, num_epochs = 100):
         if epoch % 10 == 0:
             save(model, optimizer, loss, 'faceRecog.saved.model')
         print(running_loss)
+        outfile.write(running_loss)
 
 
 # In[7]:
