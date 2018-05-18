@@ -162,7 +162,6 @@ def train_model(model, criterion, optimizer, num_classes, num_epochs = 100):
         print('-' * 10)
         print(len(train_loader))
 	
-        
         model.train()
         running_loss = 0.0
 
@@ -262,7 +261,7 @@ init_weights()
 optimizer = optim.SGD(filter(lambda p: p.requires_grad,myModel.parameters()), lr=0.0001, nesterov=True, momentum=0.9)
 if use_cuda:
     myModel = myModel.cuda()
-model_ft = train_model(myModel, criterion, optimizer, num_classes, num_epochs=10)
+model_ft = train_model(myModel, criterion, optimizer, num_classes, num_epochs=1)
 
 
 # In[ ]:
